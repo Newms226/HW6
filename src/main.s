@@ -9,8 +9,10 @@ M      SPACE   4
        EXPORT  Start
 
 Start
-		LDR		r0, #1
-		BLR		count_ones
+		MOV		r0, #0x24
+		BL		count_ones
+		
+		B		.
 
 ; Assume that r0 has the word loaded. Places count in r2.
 ; WARNING: Code overwrites r0
@@ -19,11 +21,11 @@ Start
 ; r2 = count
 count_ones
 		CMP		r0, #0
-		BEQ		lr			; base case
+		BLXEQ  	lr		; base case
 		; else
 		SUB		r1, r0, #1
-		AND		r0, r0, r0
-		ADD     r2, r2, #1  ; increment count
+		AND		r0, r0, r1
+		ADD     r2, r2, #1  ; increment count	
 		B		count_ones
 		
         ALIGN      

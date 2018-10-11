@@ -1,0 +1,120 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; we align 32 bit variables to 32-bits
+    2 00000000         ; we align op codes to 16 bits
+    3 00000000                 THUMB
+    4 00000000                 AREA             DATA, ALIGN=4
+    5 00000000                 EXPORT           M [DATA,SIZE=4]
+    6 00000000 00 00 00 
+              00       M       SPACE            4
+    7 00000004         
+    8 00000004                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    9 00000000                 EXPORT           Start
+   10 00000000         Start
+   11 00000000         ;MOV  r0, #0x24
+   12 00000000 F000 F80B       BL               test_count_ones
+   13 00000004         
+   14 00000004 E7FE            B                .
+   15 00000006         
+   16 00000006         ; Assume that r0 has the word loaded. Places count in r2
+                       .
+   17 00000006         ; WARNING: Code overwrites r0
+   18 00000006         ; r0 = word
+   19 00000006         ; r1 = word!
+   20 00000006         ; r2 = count
+   21 00000006         count_ones
+   22 00000006 2800            CMP              r0, #0
+   23 00000008 BF08 47F0       BLXEQ            lr          ; base case
+   24 0000000C         ; else
+   25 0000000C F1A0 0101       SUB              r1, r0, #1
+   26 00000010 EA00 0001       AND              r0, r0, r1
+   27 00000014 F102 0201       ADD              r2, r2, #1  ; increment count 
+   28 00000018 E7F5            B                count_ones
+   29 0000001A         
+   30 0000001A         test_count_ones
+   31 0000001A F04F 0024       MOV              r0, #0x24
+   32 0000001E F7FF FFF2       BL               count_ones
+   33 00000022 2A02            CMP              r2, #2      ; should be equal
+   34 00000024 F04F 0020       MOV              r0, #0x20
+   35 00000028 F7FF FFED       BL               count_ones
+   36 0000002C 2A01            CMP              r2, #1
+   37 0000002E 47F0            BLX              lr
+   38 00000030         
+   39 00000030                 ALIGN
+   40 00000030                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=.\main.d -o.\main.o -I.\RTE\_SimpleProject -IC:\Keil_v5\ARM\PACK\A
+RM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Dev
+ice\Include\TM4C123 --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION 
+SETA 526" --predefine="_RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.
+\main.lst main.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DATA 00000000
+
+Symbol: DATA
+   Definitions
+      At line 4 in file main.s
+   Uses
+      None
+Comment: DATA unused
+M 00000000
+
+Symbol: M
+   Definitions
+      At line 6 in file main.s
+   Uses
+      At line 5 in file main.s
+Comment: M used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 8 in file main.s
+   Uses
+      None
+Comment: .text unused
+Start 00000000
+
+Symbol: Start
+   Definitions
+      At line 10 in file main.s
+   Uses
+      At line 9 in file main.s
+Comment: Start used once
+count_ones 00000006
+
+Symbol: count_ones
+   Definitions
+      At line 21 in file main.s
+   Uses
+      At line 28 in file main.s
+      At line 32 in file main.s
+      At line 35 in file main.s
+
+test_count_ones 0000001A
+
+Symbol: test_count_ones
+   Definitions
+      At line 30 in file main.s
+   Uses
+      At line 12 in file main.s
+Comment: test_count_ones used once
+4 symbols
+340 symbols in table

@@ -14,14 +14,14 @@ asnw1	DCD		0x331B7D
 	
 Start
 		ADR		r0, test1;
-		LDR		r9, [r0];
+		LDR		r8, [r0];
 		
 extract_recieved_code
-		; word in r9
+		; word in r8
 		; received code in r12
 		MOV 	r12, #0 		; reset rec_parity_word
 		MOV 	r6, #1
-		MOV 	r0, r9          ; r0 = working space
+		MOV 	r0, r8          ; r0 = working space
 		MOV 	r7, #3
 		AND 	r1, r0, #6
 		MOV 	r12, r1, LSR #1  ; bits 0 & 1 in correct position
@@ -32,83 +32,35 @@ extract_recieved_code
 		AND 	r1, r0, r6, LSL #16
 		ORR 	r12, r12, r1, LSR #12
 		
-calculate_par_0
-		ADR  	r0, par0
-		LDR  	r0, [r0]
-		AND  	r0, r0, r9
-		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1   ; Zero flag will be set if count is even
-		MOV  	r11, r1
+calc_parity_word
 		
-calculate_par_1
-		ADR  	r0, par1
-		LDR  	r0, [r0]
-		AND  	r0, r0, r9
-		BL	 	count_ones		; puts count in r0
-		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADDEQ  	r11, r11, r1, LSL #1
-
-calculate_par_2
-		ADR  	r0, par2
-		LDR  	r0, [r0]
-		AND  	r0, r0, r9
-		BL	 	count_ones		; puts count in r0
-		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADDEQ  	r11, r11, r1, LSL #2
-		
-calculate_par_3
-		ADR  	r0, par3              ; load mask address
-		LDR  	r0, [r0]              ; load actual mask
-		AND  	r0, r0, r9       	  ; r0 = unpacked parity
-		BL	 	count_ones		      ; puts count in r0
-		ANDS 	r0, r0, #1            ; Zero flag will be set if count is even
-		ROREQ	r0, r9, #8           ; shift parity to index 0
-		ANDEQ	r0, r0, #1            ; r3 = unpacked p3 bit
-		ADDEQ	r11, r11, r0, LSL #3  ; move parity bit to position 
-		
-calculate_par_4
-		ADR  	r0, par4              ; load mask address
-		LDR  	r0, [r0]              ; load actual mask
-		AND  	r0, r0, r9       	  ; r0 = unpacked parity
-		BL	 	count_ones		      ; puts count in r0
-		ANDS 	r0, r0, #1            ; Zero flag will be set if count is even
-		ROREQ	r0, r9, #16           ; shift parity to index 0
-		ANDEQ	r0, r0, #1            ; r3 = unpacked p3 bit
-		ADDEQ	r11, r11, r0, LSL #4  ; move parity bit to position 
-		
+			
 ; generic method to calculate parity bit
 ;
-; r0  -> general (loaded initially with address of mask)
-; r1  -> positions to ROR by to get parity bit in index 1 from base word
-; r10 -> index of working parity bit in parity status word
+; r0  -> general (initially loaded with address of mask)
+; r9  -> index of working parity bit in recieved word
+; r10 -> index of working parity bit in parity word
+; r11 -> calculated parity bit
 generic_parity
-		POP		{r0, r1}
-		LDR  	r0, [r0]              ; load actual mask
-		AND  	r0, r0, r9       	  ; r0 = unpacked parity
-		BL	 	count_ones		      ; puts count in r0
-		ANDS 	r0, r0, #1            ; Zero flag will be set if count is even
-		ROREQ	r0, r9, r1            ; shift parity to index 0
-		ANDEQ	r0, r0, #1            ; r0 = unpacked parity bit
-		LSL		r0, r10               ; move parity bit to position
-		ORREQ	r11, r11, r0          ; pack calculated parity bit
-		ADD		r10, r10, #1          ; increment index      
+		LDR  	r0, [r0]            ; load actual mask
+		AND  	r0, r0, r8       	; r0 = unpacked parity
+		BL	 	count_ones		    ; puts count in r0
+		ANDS 	r0, r0, #1          ; Zero flag will be set if count is even
+		ROREQ	r0, r8, r1          ; shift parity to index 0
+		ANDEQ	r0, r0, #1          ; r0 = unpacked parity bit
+		LSL		r0, r10             ; move parity bit to position
+		ORREQ	r11, r11, r0        ; pack calculated parity bit
+		ADD		r10, r10, #1		; increment index      
 
 calc_correcting_code
 		EORS	r0, r12, r11
 		BEQ		stop
 		MOV		r1, #1
 		LSL		r1, r0
-		EOR		r9, r9, r1
+		EOR		r8, r8, r1
 		
 stop
 		B		.
-		
-correct_code
-		
-
-		
-		
-		
 
 ;parity_all_check
 ;		ADR		r1, par1

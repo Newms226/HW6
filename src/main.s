@@ -37,34 +37,42 @@ calculate_par_0
 		ADR  	r0, par0
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
+		ROR		r0, r0, #1
+		AND		r3, r0, #1
 		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1   ; Zero flag will be set if count is even
-		MOV  	r11, r1
+		ANDS 	r1, r0, #1   ; Zero flag will be set if count is even
+		ADDEQ	r11, r11, r3
 		
 calculate_par_1
 		ADR  	r0, par1
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
+		ROR		r0, r0, #2
+		AND		r3, r0, #1
 		BL	 	count_ones		; puts count in r0
 		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADDEQ  	r11, r11, r1, LSL #1
+		ADDEQ  	r11, r11, r3, LSL #1
 
 calculate_par_2
 		ADR  	r0, par2
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
+		ROR		r0, r0, #4
+		AND		r3, r0, #1
 		BL	 	count_ones		; puts count in r0
 		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADDEQ  	r11, r11, r1, LSL #2
+		ADDEQ  	r11, r11, r3, LSL #2
 		
 calculate_par_3
 		ADR  	r0, par3
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
+		ROR		r0, r0, #8
+		AND		r3, r0, #1
 		BL	 	count_ones		; puts count in r0
 		ANDS	r1, r0, #1
-		MOVEQ	r1, #1     ; Zero flag will be set if count is ODD
-		ADDEQ  	r11, r11, r1, LSL #3
+		;MOVEQ	r1, #1     ; Zero flag will be set if count is ODD
+		ADDEQ  	r11, r11, r3, LSL #3
 		
 calculate_par_4
 		ADR  	r0, par4

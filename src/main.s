@@ -7,15 +7,16 @@ par2	DCD		0x30F0F0
 par3	DCD		0xFF00
 par4	DCD		0x3F0000
 	
-parA    DCD		0x3FFFFF
+parA    DCD		0x3FFFFE
 	
-base	DCD		0x331B3D
+test1	DCD		0x331B3D
+result1	DCD		0x331B7D
+test2	DCD		0x11CADB
+
 	
 Start
-		ADR		r0, base;
+		ADR		r0, test1;
 		LDR		r9, [r0];
-		;MOV		r9, #&231B3A
-		;BL		test_count_ones
 		
 extract_recieved_code
 		; word in r9
@@ -88,28 +89,29 @@ calculate_par_4
 
 calc_correcting_code
 		EORS	r0, r12, r11
-		BEQ		stop
+		BEQ		pall
 		MOV		r1, #1
 		LSL		r1, r0
 		EOR		r9, r9, r1
+		B		stop
+		
+pall
+		AND		r3, r9, #1
+		ADR		r0, parA
+		LDR		r0, [r0]
+		AND		r0, r9, r0
+		BL		count_ones
+		; EQ -> odd, r3 should be 1
+		; NE -> even, r3 should be 0
+		AND		r0, r0, #1
+		TST		r0, r3
+		BNE		.				; two errors, cannot be corrected
 		
 stop
+		ADR		r0, result1
+		LDR		r0, [r0]
+		CMP		r0, r9			; Should set zero flag if everything worked
 		B		.
-		
-correct_code
-		
-
-		
-		
-		
-
-;parity_all_check
-;		ADR		r1, par1
-;		LDR		r1, [r1]	; load p_all mask
-;		AND		r0, r1, r9  ; extract bits
-;		BL		count_ones
-;		RRX		r2, r2, #1		; set carry. 0 = even, 1 = odd 
-		  
 
 ; Assume that r0 has the word loaded. Places count in r0 when done (RESETS)
 ; WARNING: Code overwrites r0
@@ -137,9 +139,7 @@ test_count_ones
 		BL		count_ones
 		CMP		r2, #1
 		BLX		lr
-
-
-	
+		
         ALIGN      
         END  
            

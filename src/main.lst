@@ -1,0 +1,382 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    2 00000000                 EXPORT           Start
+    3 00000000         
+    4 00000000 002AAAAA 
+                       par0    DCD              0x2AAAAA
+    5 00000004 000CCCCC 
+                       par1    DCD              0xCCCCC
+    6 00000008 0030F0F0 
+                       par2    DCD              0x30F0F0
+    7 0000000C 0000FF00 
+                       par3    DCD              0xFF00
+    8 00000010 003F0000 
+                       par4    DCD              0x3F0000
+    9 00000014         
+   10 00000014 003FFFFF 
+                       parA    DCD              0x3FFFFF
+   11 00000018         
+   12 00000018 00331B3D 
+                       base    DCD              0x331B3D
+   13 0000001C         
+   14 0000001C         Start
+   15 0000001C F2AF 0008       ADR              r0, base    ;
+   16 00000020 F8D0 9000       LDR              r9, [r0]    ;
+   17 00000024         ;MOV  r9, #&231B3A
+   18 00000024         ;BL  test_count_ones
+   19 00000024         
+   20 00000024         extract_recieved_code
+   21 00000024         ; word in r9
+   22 00000024         ; received code in r12
+   23 00000024 F04F 0C00       MOV              r12, #0     ; reset rec_parity_
+                                                            word
+   24 00000028 F04F 0601       MOV              r6, #1
+   25 0000002C 4648            MOV              r0, r9      ; r0 = working spac
+                                                            e
+   26 0000002E F04F 0703       MOV              r7, #3
+   27 00000032 F000 0106       AND              r1, r0, #6
+   28 00000036 EA4F 0C51       MOV              r12, r1, LSR #1 ; bits 0 & 1 in
+                                                             correct position
+   29 0000003A EA00 1106       AND              r1, r0, r6, LSL #4 
+                                                            ; r1 contains par2
+   30 0000003E EA4C 0C91       ORR              r12, r12, r1, LSR #2 ; par2 in 
+                                                            correct position
+   31 00000042 EA00 2106       AND              r1, r0, r6, LSL #8 
+                                                            ; r1 contains par3
+   32 00000046 EA4C 1C51       ORR              r12, r12, r1, LSR #5
+   33 0000004A EA00 4106       AND              r1, r0, r6, LSL #16
+   34 0000004E EA4C 3C11       ORR              r12, r12, r1, LSR #12
+   35 00000052         
+   36 00000052         calculate_par_0
+   37 00000052 F2AF 0054       ADR              r0, par0
+   38 00000056 6800            LDR              r0, [r0]
+   39 00000058 EA00 0009       AND              r0, r0, r9
+   40 0000005C F000 F842       BL               count_ones  ; puts count in r0
+   41 00000060 F000 0101       AND              r1, r0, #1  ; Zero flag will be
+                                                             set if count is ev
+                                                            en
+   42 00000064 468B            MOV              r11, r1
+   43 00000066         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   44 00000066         calculate_par_1
+   45 00000066 F2AF 0064       ADR              r0, par1
+   46 0000006A 6800            LDR              r0, [r0]
+   47 0000006C EA00 0009       AND              r0, r0, r9
+   48 00000070 F000 F838       BL               count_ones  ; puts count in r0
+   49 00000074 F010 0101       ANDS             r1, r0, #1  ; Zero flag will be
+                                                             set if count is ev
+                                                            en
+   50 00000078 BF08 EB0B 
+              0B41             ADDEQ            r11, r11, r1, LSL #1
+   51 0000007E         
+   52 0000007E         calculate_par_2
+   53 0000007E F2AF 0078       ADR              r0, par2
+   54 00000082 6800            LDR              r0, [r0]
+   55 00000084 EA00 0009       AND              r0, r0, r9
+   56 00000088 F000 F82C       BL               count_ones  ; puts count in r0
+   57 0000008C F010 0101       ANDS             r1, r0, #1  ; Zero flag will be
+                                                             set if count is ev
+                                                            en
+   58 00000090 BF08 EB0B 
+              0B81             ADDEQ            r11, r11, r1, LSL #2
+   59 00000096         
+   60 00000096         calculate_par_3
+   61 00000096 F2AF 008C       ADR              r0, par3
+   62 0000009A 6800            LDR              r0, [r0]
+   63 0000009C EA00 0009       AND              r0, r0, r9
+   64 000000A0 F000 F820       BL               count_ones  ; puts count in r0
+   65 000000A4 F010 0101       ANDS             r1, r0, #1
+   66 000000A8 BF04 2101       MOVEQ            r1, #1      ; Zero flag will be
+                                                             set if count is OD
+                                                            D
+   67 000000AC EB0B 0BC1       ADDEQ            r11, r11, r1, LSL #3
+   68 000000B0         
+   69 000000B0         calculate_par_4
+   70 000000B0 F2AF 00A4       ADR              r0, par4
+   71 000000B4 6800            LDR              r0, [r0]
+   72 000000B6 EA00 0009       AND              r0, r0, r9
+   73 000000BA EA4F 4139       ROR              r1, r9, #16
+   74 000000BE F001 0301       AND              r3, r1, #1
+   75 000000C2 F000 F80F       BL               count_ones  ; puts count in r0
+   76 000000C6 F010 0201       ANDS             r2, r0, #1  ; Zero flag will be
+                                                             set if count is ev
+                                                            en
+   77 000000CA         ; equal, do nothing.
+   78 000000CA         ; NE = find parity bit & move it
+   79 000000CA BF08 EB0B 
+              1B03             ADDEQ            r11, r11, r3, LSL #4
+   80 000000D0         
+   81 000000D0         calc_correcting_code
+   82 000000D0 EA9C 000B       EORS             r0, r12, r11
+   83 000000D4 D005            BEQ              stop
+   84 000000D6 F04F 0101       MOV              r1, #1
+   85 000000DA FA01 F100       LSL              r1, r0
+   86 000000DE EA89 0901       EOR              r9, r9, r1
+   87 000000E2         
+   88 000000E2         stop
+   89 000000E2 E7FE            B                .
+   90 000000E4         
+   91 000000E4         correct_code
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   92 000000E4         
+   93 000000E4         
+   94 000000E4         
+   95 000000E4         
+   96 000000E4         
+   97 000000E4         
+   98 000000E4         ;parity_all_check
+   99 000000E4         ;  ADR  r1, par1
+  100 000000E4         ;  LDR  r1, [r1] ; load p_all mask
+  101 000000E4         ;  AND  r0, r1, r9  ; extract bits
+  102 000000E4         ;  BL  count_ones
+  103 000000E4         ;  RRX  r2, r2, #1  ; set carry. 0 = even, 1 = odd 
+  104 000000E4         
+  105 000000E4         
+  106 000000E4         ; Assume that r0 has the word loaded. Places count in r0
+                        when done (RESETS)
+  107 000000E4         ; WARNING: Code overwrites r0
+  108 000000E4         ; r0 = word
+  109 000000E4         ; r1 = word!
+  110 000000E4         ; r2 = count
+  111 000000E4         count_ones
+  112 000000E4 F04F 0200       MOV              r2, #0
+  113 000000E8         loop
+  114 000000E8 2800            CMP              r0, #&0
+  115 000000EA BF04 4610       MOVEQ            r0, r2
+  116 000000EE 4770            BXEQ             lr          ; base case
+  117 000000F0         
+  118 000000F0 F1A0 0101       SUB              r1, r0, #1
+  119 000000F4 EA00 0001       AND              r0, r0, r1
+  120 000000F8 F102 0201       ADD              r2, r2, #1  ; increment count 
+  121 000000FC E7F4            B                loop
+  122 000000FE         
+  123 000000FE         test_count_ones
+  124 000000FE F04F 0024       MOV              r0, #0x24
+  125 00000102 F7FF FFEF       BL               count_ones
+  126 00000106 2A02            CMP              r2, #2      ; should be equal
+  127 00000108 F04F 0020       MOV              r0, #0x20
+  128 0000010C F04F 0200       MOV              r2, #0
+  129 00000110 F7FF FFE8       BL               count_ones
+  130 00000114 2A01            CMP              r2, #1
+  131 00000116 47F0            BLX              lr
+  132 00000118         
+  133 00000118         
+  134 00000118         
+  135 00000118                 ALIGN
+  136 00000118                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=.\main.d -o.\main.o -I.\RTE\_SimpleProject -IC:\Keil_v5\ARM\PACK\A
+RM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Dev
+ice\Include\TM4C123 --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION 
+SETA 526" --predefine="_RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.
+\main.lst main.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 1 in file main.s
+   Uses
+      None
+Comment: .text unused
+Start 0000001C
+
+Symbol: Start
+   Definitions
+      At line 14 in file main.s
+   Uses
+      At line 2 in file main.s
+Comment: Start used once
+base 00000018
+
+Symbol: base
+   Definitions
+      At line 12 in file main.s
+   Uses
+      At line 15 in file main.s
+Comment: base used once
+calc_correcting_code 000000D0
+
+Symbol: calc_correcting_code
+   Definitions
+      At line 81 in file main.s
+   Uses
+      None
+Comment: calc_correcting_code unused
+calculate_par_0 00000052
+
+Symbol: calculate_par_0
+   Definitions
+      At line 36 in file main.s
+   Uses
+      None
+Comment: calculate_par_0 unused
+calculate_par_1 00000066
+
+Symbol: calculate_par_1
+   Definitions
+      At line 44 in file main.s
+   Uses
+      None
+Comment: calculate_par_1 unused
+calculate_par_2 0000007E
+
+Symbol: calculate_par_2
+   Definitions
+      At line 52 in file main.s
+   Uses
+      None
+Comment: calculate_par_2 unused
+calculate_par_3 00000096
+
+Symbol: calculate_par_3
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 60 in file main.s
+   Uses
+      None
+Comment: calculate_par_3 unused
+calculate_par_4 000000B0
+
+Symbol: calculate_par_4
+   Definitions
+      At line 69 in file main.s
+   Uses
+      None
+Comment: calculate_par_4 unused
+correct_code 000000E4
+
+Symbol: correct_code
+   Definitions
+      At line 91 in file main.s
+   Uses
+      None
+Comment: correct_code unused
+count_ones 000000E4
+
+Symbol: count_ones
+   Definitions
+      At line 111 in file main.s
+   Uses
+      At line 40 in file main.s
+      At line 48 in file main.s
+      At line 56 in file main.s
+      At line 64 in file main.s
+      At line 75 in file main.s
+      At line 125 in file main.s
+      At line 129 in file main.s
+
+extract_recieved_code 00000024
+
+Symbol: extract_recieved_code
+   Definitions
+      At line 20 in file main.s
+   Uses
+      None
+Comment: extract_recieved_code unused
+loop 000000E8
+
+Symbol: loop
+   Definitions
+      At line 113 in file main.s
+   Uses
+      At line 121 in file main.s
+Comment: loop used once
+par0 00000000
+
+Symbol: par0
+   Definitions
+      At line 4 in file main.s
+   Uses
+      At line 37 in file main.s
+Comment: par0 used once
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+par1 00000004
+
+Symbol: par1
+   Definitions
+      At line 5 in file main.s
+   Uses
+      At line 45 in file main.s
+Comment: par1 used once
+par2 00000008
+
+Symbol: par2
+   Definitions
+      At line 6 in file main.s
+   Uses
+      At line 53 in file main.s
+Comment: par2 used once
+par3 0000000C
+
+Symbol: par3
+   Definitions
+      At line 7 in file main.s
+   Uses
+      At line 61 in file main.s
+Comment: par3 used once
+par4 00000010
+
+Symbol: par4
+   Definitions
+      At line 8 in file main.s
+   Uses
+      At line 70 in file main.s
+Comment: par4 used once
+parA 00000014
+
+Symbol: parA
+   Definitions
+      At line 10 in file main.s
+   Uses
+      None
+Comment: parA unused
+stop 000000E2
+
+Symbol: stop
+   Definitions
+      At line 88 in file main.s
+   Uses
+      At line 83 in file main.s
+Comment: stop used once
+test_count_ones 000000FE
+
+Symbol: test_count_ones
+   Definitions
+      At line 123 in file main.s
+   Uses
+      None
+Comment: test_count_ones unused
+21 symbols
+355 symbols in table

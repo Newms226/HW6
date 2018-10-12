@@ -1,11 +1,12 @@
              AREA    |.text|, CODE, READONLY, ALIGN=2
              EXPORT  Start
 		   
-;par1	DCD		#0x2AAAAA
-;par2	DCD		#0xCCCCC
-;par3	DCD		#0x30F0F0
-;par4	DCD		#0x3F0000
-;parA    DCD		#0x3FFFFF;
+par0	DCD		0x2AAAAA
+par1	DCD		0xCCCCC
+par2	DCD		0x30F0F0
+par3	DCD		0xFF00
+par4	DCD		0x3F0000
+parA    DCD		0x3FFFFF;
 base	DCD		0x231B3A
 	
 Start
@@ -37,8 +38,8 @@ calculate_par_0
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		MOV  	r13, r1
+		EOR 	r1, r0, #1     ; Zero flag will be set if count is even
+		MOV  	r11, r1
 		
 calculate_par_1
 		ADR  	r0, par1
@@ -46,7 +47,7 @@ calculate_par_1
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
 		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r13, r1, LSL #1
+		ADD  	r11, r11, r1, LSL #1
 
 calculate_par_2
 		ADR  	r0, par2
@@ -54,7 +55,7 @@ calculate_par_2
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
 		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r13, r1, LSL #2
+		ADD  	r11, r11, r1, LSL #2
 		
 calculate_par_3
 		ADR  	r0, par3
@@ -62,7 +63,7 @@ calculate_par_3
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
 		AND	 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r13, r1, LSL #3
+		ADD  	r11, r11, r1, LSL #3
 		
 calculate_par_4
 		ADR  	r0, par4
@@ -70,13 +71,17 @@ calculate_par_4
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
 		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r13, r13, r1, LSL #4
+		LSL		r1, #1
+		ADD  	r11, r11, r1, LSL #3
 		
 calc_correcting_code
-		EORS 	r0, r12, r13
-		BEQ		.
+		CMP 	r12, r11
+		BLEQ	count_ones
+		ANDEQS	r0, r0, #1
+		BNE		.
 		MOV		r1, #1
-		ORR		r9, r1, LSL r0
+		LSL		r1, r0
+		EOR		r9, r1
 		
 correct_code
 		
@@ -101,7 +106,7 @@ correct_code
 count_ones
 		TST		r0, #&0
 		MOVEQ	r0, r2
-		BLXEQ  	lr; base case
+		BXEQ	lr; base case
 		
 		SUB		r1, r0, #1
 		AND		r0, r0, r1

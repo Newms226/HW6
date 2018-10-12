@@ -3,24 +3,26 @@
 			
 ;2 ^ r10 = r9
 ;
-; r0 -> base
-; r1 -> exponent
-; r2 -> general purpose (working value)
+; r5 -> base
+; r6 -> exponent
+; r7 -> general purpose (working value)
 exp
-		POP		{r0, r1}
-		MOV		r2, r0
+		POP		{r5, r6}
+		CMP		r6, #0
+		BXEQ	lr
+		MOV		r7, r5
 		
 loop
-		CMP		r1, #1
+		CMP		r6, #1
 		BLS		return
 		
-		MUL		r2, r2, r0 ; OVERFLOW!
+		MUL		r6, r5 ; OVERFLOW!
 		BVS     error
-		SUB		r1, r1, #1
+		SUB		r6, r6, #1
 		B		loop
 		
 return
-		PUSH	{r2}
+		PUSH	{r7}
 		BX		lr
 		
 error

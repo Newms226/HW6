@@ -9,7 +9,7 @@ parA    DCD		0x3FFFFF
 test1	DCD		0x331B3D
 asnw1	DCD		0x331B7D
 
-; {r0 - r2} -> general purpose
+; {r0 - r7} -> general purpose
 ;
 ; r8  -> word to parse
 ; r9  -> working address of the mask array
@@ -65,6 +65,7 @@ generic_parity
 		ANDS 	r0, #1          	; Zero flag will be set if count is even
 		BEQ		shift				; Branch to shift instruction 
 		
+; else
 continue
 		ADD		r10, #1				; increment index
 		B		generic_parity

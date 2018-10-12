@@ -24,7 +24,7 @@ FF00, 0x3F0000
    10 0000001C 00331B7D 
                        asnw1   DCD              0x331B7D
    11 00000020         
-   12 00000020         ; {r0 - r2} -> general purpose
+   12 00000020         ; {r0 - r7} -> general purpose
    13 00000020         ;
    14 00000020         ; r8  -> word to parse
    15 00000020         ; r9  -> working address of the mask array
@@ -37,9 +37,9 @@ FF00, 0x3F0000
    21 00000020 F2AF 000C       ADR              r0, test1   ;
    22 00000024 F8D0 8000       LDR              r8, [r0]    ;
    23 00000028 F2AF 092C       ADR              r9, masks
-   24 0000002C F000 F80D       BL               extract_recieved_code
+   24 0000002C F000 F80F       BL               extract_recieved_code
    25 00000030 F04F 0A00       MOV              r10, #0
-   26 00000034 E01F            B                generic_parity
+   26 00000034 E021            B                generic_parity
    27 00000036         
    28 00000036         calc_correcting_code
    29 00000036 EA9C 000B       EORS             r0, r12, r11
@@ -51,121 +51,123 @@ FF00, 0x3F0000
    35 00000044 EA88 0801       EOR              r8, r8, r1
    36 00000048         
    37 00000048         stop
-   38 00000048 E7FE            B                .
-   39 0000004A         
-   40 0000004A         
-   41 0000004A         extract_recieved_code
-   42 0000004A         ; word in r8
-   43 0000004A         ; received code in r12
-   44 0000004A F04F 0C00       MOV              r12, #0     ; reset rec_parity_
+   38 00000048 F84D 8D04       PUSH             {r8}
+   39 0000004C E7FE            B                .
+   40 0000004E         
+   41 0000004E         
+   42 0000004E         extract_recieved_code
+   43 0000004E         ; word in r8
+   44 0000004E         ; received code in r12
+   45 0000004E F04F 0C00       MOV              r12, #0     ; reset rec_parity_
                                                             word
-   45 0000004E F04F 0601       MOV              r6, #1
-   46 00000052 4640            MOV              r0, r8      ; r0 = working spac
+   46 00000052 F04F 0601       MOV              r6, #1
+   47 00000056 4640            MOV              r0, r8      ; r0 = working spac
                                                             e
-   47 00000054 F000 0106       AND              r1, r0, #6
 
 
 
 ARM Macro Assembler    Page 2 
 
 
-   48 00000058 EA4F 0C51       MOV              r12, r1, LSR #1 ; bits 0 & 1 in
+   48 00000058 F000 0106       AND              r1, r0, #6
+   49 0000005C EA4F 0C51       MOV              r12, r1, LSR #1 ; bits 0 & 1 in
                                                              correct position
-   49 0000005C EA00 1106       AND              r1, r0, r6, LSL #4 
+   50 00000060 EA00 1106       AND              r1, r0, r6, LSL #4 
                                                             ; r1 contains par2
-   50 00000060 EA4C 0C91       ORR              r12, r1, LSR #2 ; par2 in corre
+   51 00000064 EA4C 0C91       ORR              r12, r1, LSR #2 ; par2 in corre
                                                             ct position
-   51 00000064 EA00 2106       AND              r1, r0, r6, LSL #8 
+   52 00000068 EA00 2106       AND              r1, r0, r6, LSL #8 
                                                             ; r1 contains par3
-   52 00000068 EA4C 1C51       ORR              r12, r1, LSR #5
-   53 0000006C EA00 4106       AND              r1, r0, r6, LSL #16
-   54 00000070 EA4C 3C11       ORR              r12, r1, LSR #12
-   55 00000074 4770            BX               lr
-   56 00000076         
-   57 00000076         generic_parity
-   58 00000076 F1BA 0F05       CMP              r10, #5     ; base case
-   59 0000007A D0DC            BEQ              calc_correcting_code
-   60 0000007C         
-   61 0000007C F857 0B01       LDR              r0, [r7], #1 ; load actual mask
+   53 0000006C EA4C 1C51       ORR              r12, r1, LSR #5
+   54 00000070 EA00 4106       AND              r1, r0, r6, LSL #16
+   55 00000074 EA4C 3C11       ORR              r12, r1, LSR #12
+   56 00000078 4770            BX               lr
+   57 0000007A         
+   58 0000007A         generic_parity
+   59 0000007A F1BA 0F05       CMP              r10, #5     ; base case
+   60 0000007E D0DA            BEQ              calc_correcting_code
+   61 00000080         
+   62 00000080 F857 0B01       LDR              r0, [r7], #1 ; load actual mask
                                                             
-   62 00000080 EA00 0008       AND              r0, r8      ; r0 = unpacked par
+   63 00000084 EA00 0008       AND              r0, r8      ; r0 = unpacked par
                                                             ity
-   63 00000084 F000 F816       BL               count_ones  ; puts count in r0
-   64 00000088 F010 0001       ANDS             r0, #1      ; Zero flag will be
+   64 00000088 F000 F816       BL               count_ones  ; puts count in r0
+   65 0000008C F010 0001       ANDS             r0, #1      ; Zero flag will be
                                                              set if count is ev
                                                             en
-   65 0000008C D002            BEQ              shift       ; Branch to shift i
+   66 00000090 D002            BEQ              shift       ; Branch to shift i
                                                             nstruction 
-   66 0000008E         
-   67 0000008E         continue
-   68 0000008E F10A 0A01       ADD              r10, #1     ; increment index
-   69 00000092 E7F0            B                generic_parity
-   70 00000094         
-   71 00000094         shift
-   72 00000094 F04F 0202       MOV              r2, #2
-   73 00000098 E92D 0404       PUSH             {r2, r10}   ; {base, exponentia
+   67 00000092         
+   68 00000092         ; else
+   69 00000092         continue
+   70 00000092 F10A 0A01       ADD              r10, #1     ; increment index
+   71 00000096 E7F0            B                generic_parity
+   72 00000098         
+   73 00000098         shift
+   74 00000098 F04F 0202       MOV              r2, #2
+   75 0000009C E92D 0404       PUSH             {r2, r10}   ; {base, exponentia
                                                             l}
-   74 0000009C F7FF FFFE       BL               exp         ; branch to calcula
+   76 000000A0 F7FF FFFE       BL               exp         ; branch to calcula
                                                             te exponent
-   75 000000A0 BC01            POP              {r0}        ; get result (ie: a
+   77 000000A4 BC01            POP              {r0}        ; get result (ie: a
                                                             mount of bits to sh
                                                             ift)
-   76 000000A2 FA68 F000       ROR              r0, r8, r0  ; shift parity to i
+   78 000000A6 FA68 F000       ROR              r0, r8, r0  ; shift parity to i
                                                             ndex 0
-   77 000000A6 F000 0001       AND              r0, r0, #1  ; r0 = unpacked par
+   79 000000AA F000 0001       AND              r0, r0, #1  ; r0 = unpacked par
                                                             ity bit
-   78 000000AA FA00 F00A       LSL              r0, r10     ; move parity bit t
+   80 000000AE FA00 F00A       LSL              r0, r10     ; move parity bit t
                                                             o position
-   79 000000AE EA4B 0B00       ORR              r11, r11, r0 ; pack calculated 
+   81 000000B2 EA4B 0B00       ORR              r11, r11, r0 ; pack calculated 
                                                             parity bit
-   80 000000B2 E7EC            B                continue
-   81 000000B4         
-   82 000000B4         ;parity_all_check
-   83 000000B4         ;  ADR  r1, par1
-   84 000000B4         ;  LDR  r1, [r1] ; load p_all mask
-   85 000000B4         ;  AND  r0, r1, r9  ; extract bits
-   86 000000B4         ;  BL  count_ones
-   87 000000B4         ;  RRX  r2, r2, #1  ; set carry. 0 = even, 1 = odd 
-   88 000000B4         
-   89 000000B4         
+   82 000000B6 E7EC            B                continue
+   83 000000B8         
+   84 000000B8         ;parity_all_check
+   85 000000B8         ;  ADR  r1, par1
+   86 000000B8         ;  LDR  r1, [r1] ; load p_all mask
+   87 000000B8         ;  AND  r0, r1, r9  ; extract bits
+   88 000000B8         ;  BL  count_ones
+   89 000000B8         ;  RRX  r2, r2, #1  ; set carry. 0 = even, 1 = odd 
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-   90 000000B4         ; Assume that r0 has the word loaded. Places count in r0
+   90 000000B8         
+   91 000000B8         
+   92 000000B8         ; Assume that r0 has the word loaded. Places count in r0
                         when done (RESETS)
-   91 000000B4         ; WARNING: Code overwrites r0
-   92 000000B4         ; r0 = word
-   93 000000B4         ; r1 = word!
-   94 000000B4         ; r2 = count
-   95 000000B4         count_ones
-   96 000000B4 F04F 0200       MOV              r2, #0
-   97 000000B8         count_ones_loop
-   98 000000B8 2800            CMP              r0, #&0
-   99 000000BA BF04 4610       MOVEQ            r0, r2
-  100 000000BE 4770            BXEQ             lr          ; base case
-  101 000000C0         
-  102 000000C0 F1A0 0101       SUB              r1, r0, #1
-  103 000000C4 EA00 0001       AND              r0, r0, r1
-  104 000000C8 F102 0201       ADD              r2, r2, #1  ; increment count 
-  105 000000CC E7F4            B                count_ones_loop
-  106 000000CE         
-  107 000000CE         test_count_ones
-  108 000000CE F04F 0024       MOV              r0, #0x24
-  109 000000D2 F7FF FFEF       BL               count_ones
-  110 000000D6 2A02            CMP              r2, #2      ; should be equal
-  111 000000D8 F04F 0020       MOV              r0, #0x20
-  112 000000DC F04F 0200       MOV              r2, #0
-  113 000000E0 F7FF FFE8       BL               count_ones
-  114 000000E4 2A01            CMP              r2, #1
-  115 000000E6 47F0            BLX              lr
-  116 000000E8         
-  117 000000E8         
-  118 000000E8         
-  119 000000E8                 ALIGN
-  120 000000E8                 END
+   93 000000B8         ; WARNING: Code overwrites r0
+   94 000000B8         ; r0 = word
+   95 000000B8         ; r1 = word!
+   96 000000B8         ; r2 = count
+   97 000000B8         count_ones
+   98 000000B8 F04F 0200       MOV              r2, #0
+   99 000000BC         count_ones_loop
+  100 000000BC 2800            CMP              r0, #&0
+  101 000000BE BF04 4610       MOVEQ            r0, r2
+  102 000000C2 4770            BXEQ             lr          ; base case
+  103 000000C4         
+  104 000000C4 F1A0 0101       SUB              r1, r0, #1
+  105 000000C8 EA00 0001       AND              r0, r0, r1
+  106 000000CC F102 0201       ADD              r2, r2, #1  ; increment count 
+  107 000000D0 E7F4            B                count_ones_loop
+  108 000000D2         
+  109 000000D2         test_count_ones
+  110 000000D2 F04F 0024       MOV              r0, #0x24
+  111 000000D6 F7FF FFEF       BL               count_ones
+  112 000000DA 2A02            CMP              r2, #2      ; should be equal
+  113 000000DC F04F 0020       MOV              r0, #0x20
+  114 000000E0 F04F 0200       MOV              r2, #0
+  115 000000E4 F7FF FFE8       BL               count_ones
+  116 000000E8 2A01            CMP              r2, #1
+  117 000000EA 47F0            BLX              lr
+  118 000000EC         
+  119 000000EC         
+  120 000000EC         
+  121 000000EC                 ALIGN
+  122 000000EC                 END
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
 ork --depend=.\main.d -o.\main.o -I.\RTE\_SimpleProject -IC:\Keil_v5\ARM\PACK\A
 RM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.1.0\Dev
@@ -208,15 +210,15 @@ Symbol: calc_correcting_code
    Definitions
       At line 28 in file main.s
    Uses
-      At line 59 in file main.s
+      At line 60 in file main.s
 Comment: calc_correcting_code used once
-continue 0000008E
+continue 00000092
 
 Symbol: continue
    Definitions
-      At line 67 in file main.s
+      At line 69 in file main.s
    Uses
-      At line 80 in file main.s
+      At line 82 in file main.s
 Comment: continue used once
 correct_word 0000003C
 
@@ -226,17 +228,17 @@ Symbol: correct_word
    Uses
       None
 Comment: correct_word unused
-count_ones 000000B4
+count_ones 000000B8
 
 Symbol: count_ones
    Definitions
-      At line 95 in file main.s
+      At line 97 in file main.s
    Uses
-      At line 63 in file main.s
-      At line 109 in file main.s
-      At line 113 in file main.s
+      At line 64 in file main.s
+      At line 111 in file main.s
+      At line 115 in file main.s
 
-count_ones_loop 000000B8
+count_ones_loop 000000BC
 
 
 
@@ -246,26 +248,26 @@ Relocatable symbols
 
 Symbol: count_ones_loop
    Definitions
-      At line 97 in file main.s
+      At line 99 in file main.s
    Uses
-      At line 105 in file main.s
+      At line 107 in file main.s
 Comment: count_ones_loop used once
-extract_recieved_code 0000004A
+extract_recieved_code 0000004E
 
 Symbol: extract_recieved_code
    Definitions
-      At line 41 in file main.s
+      At line 42 in file main.s
    Uses
       At line 24 in file main.s
 Comment: extract_recieved_code used once
-generic_parity 00000076
+generic_parity 0000007A
 
 Symbol: generic_parity
    Definitions
-      At line 57 in file main.s
+      At line 58 in file main.s
    Uses
       At line 26 in file main.s
-      At line 69 in file main.s
+      At line 71 in file main.s
 
 masks 00000000
 
@@ -283,13 +285,13 @@ Symbol: parA
    Uses
       None
 Comment: parA unused
-shift 00000094
+shift 00000098
 
 Symbol: shift
    Definitions
-      At line 71 in file main.s
+      At line 73 in file main.s
    Uses
-      At line 65 in file main.s
+      At line 66 in file main.s
 Comment: shift used once
 stop 00000048
 
@@ -313,11 +315,11 @@ Relocatable symbols
    Uses
       At line 21 in file main.s
 Comment: test1 used once
-test_count_ones 000000CE
+test_count_ones 000000D2
 
 Symbol: test_count_ones
    Definitions
-      At line 107 in file main.s
+      At line 109 in file main.s
    Uses
       None
 Comment: test_count_ones unused
@@ -334,7 +336,7 @@ Symbol: exp
    Definitions
       At line 3 in file main.s
    Uses
-      At line 74 in file main.s
+      At line 76 in file main.s
 Comment: exp used once
 1 symbol
 351 symbols in table

@@ -10,29 +10,31 @@ ARM Macro Assembler    Page 1
     3 00000000         
     4 00000000         ;2 ^ r10 = r9
     5 00000000         ;
-    6 00000000         ; r0 -> base
-    7 00000000         ; r1 -> exponent
-    8 00000000         ; r2 -> general purpose (working value)
+    6 00000000         ; r5 -> base
+    7 00000000         ; r6 -> exponent
+    8 00000000         ; r7 -> general purpose (working value)
     9 00000000         exp
-   10 00000000 BC03            POP              {r0, r1}
-   11 00000002 4602            MOV              r2, r0
-   12 00000004         
-   13 00000004         loop
-   14 00000004 2901            CMP              r1, #1
-   15 00000006 D905            BLS              return
-   16 00000008         
-   17 00000008 FB02 F200       MUL              r2, r2, r0  ; OVERFLOW!
-   18 0000000C D604            BVS              error
-   19 0000000E F1A1 0101       SUB              r1, r1, #1
-   20 00000012 E7F7            B                loop
-   21 00000014         
-   22 00000014         return
-   23 00000014 B404            PUSH             {r2}
-   24 00000016 4770            BX               lr
-   25 00000018         
-   26 00000018         error
-   27 00000018         
-   28 00000018                 END
+   10 00000000 BC60            POP              {r5, r6}
+   11 00000002 2E00            CMP              r6, #0
+   12 00000004 BF08 4770       BXEQ             lr
+   13 00000008 462F            MOV              r7, r5
+   14 0000000A         
+   15 0000000A         loop
+   16 0000000A 2E01            CMP              r6, #1
+   17 0000000C D905            BLS              return
+   18 0000000E         
+   19 0000000E FB06 F605       MUL              r6, r5      ; OVERFLOW!
+   20 00000012 D604            BVS              error
+   21 00000014 F1A6 0601       SUB              r6, r6, #1
+   22 00000018 E7F7            B                loop
+   23 0000001A         
+   24 0000001A         return
+   25 0000001A B480            PUSH             {r7}
+   26 0000001C 4770            BX               lr
+   27 0000001E         
+   28 0000001E         error
+   29 0000001E         
+   30 0000001E                 END
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
 ork --depend=.\exponential.d -o.\exponential.o -I.\RTE\_SimpleProject -IC:\Keil
 _v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\TM4C
@@ -53,13 +55,13 @@ Symbol: .text
    Uses
       None
 Comment: .text unused
-error 00000018
+error 0000001E
 
 Symbol: error
    Definitions
-      At line 26 in file exponential.s
+      At line 28 in file exponential.s
    Uses
-      At line 18 in file exponential.s
+      At line 20 in file exponential.s
 Comment: error used once
 exp 00000000
 
@@ -69,21 +71,21 @@ Symbol: exp
    Uses
       At line 2 in file exponential.s
 Comment: exp used once
-loop 00000004
+loop 0000000A
 
 Symbol: loop
    Definitions
-      At line 13 in file exponential.s
+      At line 15 in file exponential.s
    Uses
-      At line 20 in file exponential.s
+      At line 22 in file exponential.s
 Comment: loop used once
-return 00000014
+return 0000001A
 
 Symbol: return
    Definitions
-      At line 22 in file exponential.s
+      At line 24 in file exponential.s
    Uses
-      At line 15 in file exponential.s
+      At line 17 in file exponential.s
 Comment: return used once
 5 symbols
 339 symbols in table

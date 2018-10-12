@@ -6,16 +6,16 @@ par1	DCD		0xCCCCC
 par2	DCD		0x30F0F0
 par3	DCD		0xFF00
 par4	DCD		0x3F0000
-parA    DCD		0x3FFFFF;
-base	DCD		0x231B3A
+	
+parA    DCD		0x3FFFFF
+	
+base	DCD		0x331B3D
 	
 Start
 		ADR		r0, base;
 		LDR		r9, [r0];
 		;MOV		r9, #&231B3A
-		BL		test_count_ones
-		
-		B		.
+		;BL		test_count_ones
 		
 extract_recieved_code
 		; word in r9
@@ -24,7 +24,7 @@ extract_recieved_code
 		MOV 	r6, #1
 		MOV 	r0, r9          ; r0 = working space
 		MOV 	r7, #3
-		AND 	r1, r0, r7, LSL #1
+		AND 	r1, r0, #6
 		MOV 	r12, r1, LSR #1  ; bits 0 & 1 in correct position
 		AND 	r1, r0, r6, LSL #4 ; r1 contains par2
 		ORR 	r12, r12, r1, LSR #2 ; par2 in correct position
@@ -38,7 +38,7 @@ calculate_par_0
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
-		EOR 	r1, r0, #1     ; Zero flag will be set if count is even
+		AND 	r1, r0, #1   ; Zero flag will be set if count is even
 		MOV  	r11, r1
 		
 calculate_par_1
@@ -46,42 +46,47 @@ calculate_par_1
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r11, r11, r1, LSL #1
+		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
+		ADDEQ  	r11, r11, r1, LSL #1
 
 calculate_par_2
 		ADR  	r0, par2
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r11, r11, r1, LSL #2
+		ANDS 	r1, r0, #1     ; Zero flag will be set if count is even
+		ADDEQ  	r11, r11, r1, LSL #2
 		
 calculate_par_3
 		ADR  	r0, par3
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
 		BL	 	count_ones		; puts count in r0
-		AND	 	r1, r0, #1     ; Zero flag will be set if count is even
-		ADD  	r11, r11, r1, LSL #3
+		ANDS	r1, r0, #1
+		MOVEQ	r1, #1     ; Zero flag will be set if count is ODD
+		ADDEQ  	r11, r11, r1, LSL #3
 		
 calculate_par_4
 		ADR  	r0, par4
 		LDR  	r0, [r0]
 		AND  	r0, r0, r9
+		ROR		r1, r9, #16
+		AND		r3, r1, #1 
 		BL	 	count_ones		; puts count in r0
-		AND 	r1, r0, #1     ; Zero flag will be set if count is even
-		LSL		r1, #1
-		ADD  	r11, r11, r1, LSL #3
-		
+		ANDS 	r2, r0, #1     ; Zero flag will be set if count is even
+		; equal, do nothing.
+		; NE = find parity bit & move it
+		ADDEQ	r11, r11, r3, LSL #4
+
 calc_correcting_code
-		CMP 	r12, r11
-		BLEQ	count_ones
-		ANDEQS	r0, r0, #1
-		BNE		.
+		EORS	r0, r12, r11
+		BEQ		stop
 		MOV		r1, #1
 		LSL		r1, r0
-		EOR		r9, r1
+		EOR		r9, r9, r1
+		
+stop
+		B		.
 		
 correct_code
 		
@@ -104,14 +109,16 @@ correct_code
 ; r1 = word!
 ; r2 = count
 count_ones
-		TST		r0, #&0
+		MOV		r2, #0
+loop
+		CMP 	r0, #&0
 		MOVEQ	r0, r2
 		BXEQ	lr; base case
 		
 		SUB		r1, r0, #1
 		AND		r0, r0, r1
 		ADD     r2, r2, #1  ; increment count	
-		B		count_ones
+		B		loop
 		
 test_count_ones
 		MOV		r0, #0x24

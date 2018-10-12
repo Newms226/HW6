@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\SimpleProject.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\SimpleProject.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Fri Oct 12 00:13:51 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Fri Oct 12 02:45:32 2018
 <BR><P>
 <H3>Maximum Stack Usage =          0 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -14,6 +14,7 @@ Functions with no stack information
 </H3><UL>
  <LI><a href="#[7a]">Reset_Handler</a>
  <LI><a href="#[7d]">Start</a>
+ <LI><a href="#[7e]">exp</a>
 </UL>
 </UL>
 <P>
@@ -573,7 +574,13 @@ Global Symbols
 <BR>[Address Reference Count : 1]<UL><LI> startup.o(RESET)
 </UL>
 <P><STRONG><a name="[7d]"></a>Start</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, main.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Reset_Handler
+<BR><BR>[Calls]<UL><LI><a href="#[7e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;exp
+</UL>
+<BR>[Called By]<UL><LI><a href="#[7a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Reset_Handler
+</UL>
+
+<P><STRONG><a name="[7e]"></a>exp</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, exponential.o(.text))
+<BR><BR>[Called By]<UL><LI><a href="#[7d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Start
 </UL>
 <P>
 <H3>

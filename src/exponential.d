@@ -1,0 +1,1 @@
+.\exponential.o: exponential.s

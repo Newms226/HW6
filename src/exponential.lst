@@ -1,0 +1,89 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    2 00000000                 EXPORT           exp
+    3 00000000         
+    4 00000000         ;2 ^ r10 = r9
+    5 00000000         ;
+    6 00000000         ; r0 -> base
+    7 00000000         ; r1 -> exponent
+    8 00000000         ; r2 -> general purpose (working value)
+    9 00000000         exp
+   10 00000000 BC03            POP              {r0, r1}
+   11 00000002 4602            MOV              r2, r0
+   12 00000004         
+   13 00000004         loop
+   14 00000004 2901            CMP              r1, #1
+   15 00000006 D905            BLS              return
+   16 00000008         
+   17 00000008 FB02 F200       MUL              r2, r2, r0  ; OVERFLOW!
+   18 0000000C D604            BVS              error
+   19 0000000E F1A1 0101       SUB              r1, r1, #1
+   20 00000012 E7F7            B                loop
+   21 00000014         
+   22 00000014         return
+   23 00000014 B404            PUSH             {r2}
+   24 00000016 4770            BX               lr
+   25 00000018         
+   26 00000018         error
+   27 00000018         
+   28 00000018                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=.\exponential.d -o.\exponential.o -I.\RTE\_SimpleProject -IC:\Keil
+_v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include -IC:\Keil_v5\ARM\PACK\Keil\TM4C
+_DFP\1.1.0\Device\Include\TM4C123 --predefine="__EVAL SETA 1" --predefine="__UV
+ISION_VERSION SETA 526" --predefine="_RTE_ SETA 1" --predefine="TM4C123GH6PM SE
+TA 1" --list=.\exponential.lst exponential.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 1 in file exponential.s
+   Uses
+      None
+Comment: .text unused
+error 00000018
+
+Symbol: error
+   Definitions
+      At line 26 in file exponential.s
+   Uses
+      At line 18 in file exponential.s
+Comment: error used once
+exp 00000000
+
+Symbol: exp
+   Definitions
+      At line 9 in file exponential.s
+   Uses
+      At line 2 in file exponential.s
+Comment: exp used once
+loop 00000004
+
+Symbol: loop
+   Definitions
+      At line 13 in file exponential.s
+   Uses
+      At line 20 in file exponential.s
+Comment: loop used once
+return 00000014
+
+Symbol: return
+   Definitions
+      At line 22 in file exponential.s
+   Uses
+      At line 15 in file exponential.s
+Comment: return used once
+5 symbols
+339 symbols in table

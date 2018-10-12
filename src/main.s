@@ -1,5 +1,6 @@
-             AREA    |.text|, CODE, READONLY, ALIGN=2
-             EXPORT  Start
+		AREA    |.text|, CODE, READONLY, ALIGN=2
+		EXPORT  Start
+		IMPORT 	exp
 		   
 par0	DCD		0x2AAAAA
 par1	DCD		0xCCCCC
@@ -42,16 +43,30 @@ calc_parity_word
 ; r10 -> index of working parity bit in parity word
 ; r11 -> calculated parity bit
 generic_parity
+		TST		r10, #5				; base case
+		BGE		
+		
 		LDR  	r0, [r0]            ; load actual mask
 		AND  	r0, r0, r8       	; r0 = unpacked parity
 		BL	 	count_ones		    ; puts count in r0
 		ANDS 	r0, r0, #1          ; Zero flag will be set if count is even
-		ROREQ	r0, r8, r1          ; shift parity to index 0
-		ANDEQ	r0, r0, #1          ; r0 = unpacked parity bit
-		LSL		r0, r10             ; move parity bit to position
-		ORREQ	r11, r11, r0        ; pack calculated parity bit
-		ADD		r10, r10, #1		; increment index      
+		BEQ		shift				; Branch to shift instruction 
+		ADD		r10, r10, #1		; increment index
+		B		generic_parity
 
+shift
+		MOV 	r2, #2
+		PUSH	{r2, r10}			; {base, exponential}
+		BL		exp                 ; branch to calculate exponent
+		POP		{r0}                ; get result (ie: amount of bits to shift)
+		ROR		r0, r8, r0          ; shift parity to index 0
+		AND		r0, r0, #1          ; r0 = unpacked parity bit
+		LSL		r0, r10             ; move parity bit to position
+		ORR		r11, r11, r0        ; pack calculated parity bit
+		BX		lr
+
+
+end_loop
 calc_correcting_code
 		EORS	r0, r12, r11
 		BEQ		stop
@@ -77,7 +92,7 @@ stop
 ; r2 = count
 count_ones
 		MOV		r2, #0
-loop
+count_ones_loop
 		CMP 	r0, #&0
 		MOVEQ	r0, r2
 		BXEQ	lr; base case
@@ -85,7 +100,7 @@ loop
 		SUB		r1, r0, #1
 		AND		r0, r0, r1
 		ADD     r2, r2, #1  ; increment count	
-		B		loop
+		B		count_ones_loop
 		
 test_count_ones
 		MOV		r0, #0x24
